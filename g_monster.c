@@ -505,7 +505,7 @@ void monster_death_use (edict_t *self)
 
 	if (!self->target)
 		return;
-
+	
 	G_UseTargets (self, self->enemy);
 }
 

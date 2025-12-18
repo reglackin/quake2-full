@@ -515,6 +515,7 @@ void M_MoveToGoal (edict_t *ent, float dist)
 }
 
 
+
 /*
 ===============
 M_walkmove

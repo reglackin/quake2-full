@@ -640,5 +640,7 @@ void SP_monster_floater (edict_t *self)
 	
 	self->monsterinfo.scale = MODEL_SCALE;
 
+	self->monsterinfo.giveexp = 50;
+
 	flymonster_start (self);
 }

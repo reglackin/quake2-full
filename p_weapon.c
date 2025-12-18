@@ -546,8 +546,8 @@ void weapon_grenade_fire (edict_t *ent, qboolean held)
 	speed = GRENADE_MINSPEED + (GRENADE_TIMER - timer) * ((GRENADE_MAXSPEED - GRENADE_MINSPEED) / GRENADE_TIMER);
 	fire_grenade2 (ent, start, forward, damage, speed, timer, radius, held);
 
-	if (! ( (int)dmflags->value & DF_INFINITE_AMMO ) )
-		ent->client->pers.inventory[ent->client->ammo_index]--;
+	//if (! ( (int)dmflags->value & DF_INFINITE_AMMO ) )
+		//ent->client->pers.inventory[ent->client->ammo_index]--;
 
 	ent->client->grenade_time = level.time + 1.0;
 
@@ -717,8 +717,8 @@ void weapon_grenadelauncher_fire (edict_t *ent)
 
 	PlayerNoise(ent, start, PNOISE_WEAPON);
 
-	if (! ( (int)dmflags->value & DF_INFINITE_AMMO ) )
-		ent->client->pers.inventory[ent->client->ammo_index]--;
+	//if (!((int)dmflags->value & DF_INFINITE_AMMO))
+		//ent->client->pers.inventory[ent->client->ammo_index]--;
 }
 
 void Weapon_GrenadeLauncher (edict_t *ent)
@@ -811,6 +811,19 @@ void Blaster_Fire (edict_t *ent, vec3_t g_offset, int damage, qboolean hyper, in
 	ent->client->kick_angles[0] = -1;
 
 	fire_blaster (ent, start, forward, damage, 1000, effect, hyper);
+	gi.centerprintf(ent, "blaster shot 1");
+
+	start[0] += right[0];
+	start[1] += right[1];
+	start[2] += right[2];
+	fire_blaster (ent, start, forward, damage, 1000, effect, hyper);
+	gi.centerprintf(ent, "blaster shot 2");
+
+	start[0] -= right[0] * 2;
+	start[1] -= right[1] * 2;
+	start[2] -= right[2] * 2;
+	fire_blaster (ent, start, forward, damage, 1000, effect, hyper); 
+	gi.centerprintf(ent, "blaster shot 3");
 
 	// send muzzle flash
 	gi.WriteByte (svc_muzzleflash);

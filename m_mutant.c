@@ -237,8 +237,48 @@ void mutant_hit_left (edict_t *self)
 {
 	vec3_t	aim;
 
+	float levelmodifier = 1;
+	if (self->monsterinfo.is_mine == 1)
+	{
+		edict_t* foundclient;
+		for (int i = 0; i < globals.num_edicts; i++)
+		{
+			edict_t* cur = &g_edicts[i];
+
+			if (cur->client)
+			{
+				foundclient = cur;
+				break;
+			}
+			if (cur->client)
+				break;
+		}
+		if (foundclient->client)
+		{
+			if (foundclient->client->pers.active_slot == 1)
+				levelmodifier = foundclient->client->pers.slot_1_exp / 100;
+			if (foundclient->client->pers.active_slot == 2)
+				levelmodifier = foundclient->client->pers.slot_2_exp / 100;
+			if (foundclient->client->pers.active_slot == 3)
+				levelmodifier = foundclient->client->pers.slot_3_exp / 100;
+		}
+		if (levelmodifier >= 2 && levelmodifier < 3)
+			levelmodifier = 2;
+		else if (levelmodifier >= 3 && levelmodifier < 4)
+			levelmodifier = 3;
+		else if (levelmodifier >= 4 && levelmodifier < 5)
+			levelmodifier = 4;
+		else if (levelmodifier >= 5 && levelmodifier < 6)
+			levelmodifier = 5;
+		else if (levelmodifier >= 6)
+			levelmodifier = 6;
+		else
+			levelmodifier = 1;
+		levelmodifier = levelmodifier * 0.5;
+	}
+
 	VectorSet (aim, MELEE_DISTANCE, self->mins[0], 8);
-	if (fire_hit (self, aim, (10 + (rand() %5)), 100))
+	if (fire_hit (self, aim, (10 + (rand() %5)) * levelmodifier, 100))
 		gi.sound (self, CHAN_WEAPON, sound_hit, 1, ATTN_NORM, 0);
 	else
 		gi.sound (self, CHAN_WEAPON, sound_swing, 1, ATTN_NORM, 0);
@@ -248,8 +288,48 @@ void mutant_hit_right (edict_t *self)
 {
 	vec3_t	aim;
 
+	float levelmodifier = 1;
+	if (self->monsterinfo.is_mine == 1)
+	{
+		edict_t* foundclient;
+		for (int i = 0; i < globals.num_edicts; i++)
+		{
+			edict_t* cur = &g_edicts[i];
+
+			if (cur->client)
+			{
+				foundclient = cur;
+				break;
+			}
+			if (cur->client)
+				break;
+		}
+		if (foundclient->client)
+		{
+			if (foundclient->client->pers.active_slot == 1)
+				levelmodifier = foundclient->client->pers.slot_1_exp / 100;
+			if (foundclient->client->pers.active_slot == 2)
+				levelmodifier = foundclient->client->pers.slot_2_exp / 100;
+			if (foundclient->client->pers.active_slot == 3)
+				levelmodifier = foundclient->client->pers.slot_3_exp / 100;
+		}
+		if (levelmodifier >= 2 && levelmodifier < 3)
+			levelmodifier = 2;
+		else if (levelmodifier >= 3 && levelmodifier < 4)
+			levelmodifier = 3;
+		else if (levelmodifier >= 4 && levelmodifier < 5)
+			levelmodifier = 4;
+		else if (levelmodifier >= 5 && levelmodifier < 6)
+			levelmodifier = 5;
+		else if (levelmodifier >= 6)
+			levelmodifier = 6;
+		else
+			levelmodifier = 1;
+		levelmodifier = levelmodifier * 0.5;
+	}
+
 	VectorSet (aim, MELEE_DISTANCE, self->maxs[0], 8);
-	if (fire_hit (self, aim, (10 + (rand() %5)), 100))
+	if (fire_hit (self, aim, (10 + (rand() %5)) * levelmodifier, 100))
 		gi.sound (self, CHAN_WEAPON, sound_hit2, 1, ATTN_NORM, 0);
 	else
 		gi.sound (self, CHAN_WEAPON, sound_swing, 1, ATTN_NORM, 0);
@@ -306,6 +386,46 @@ void mutant_jump_touch (edict_t *self, edict_t *other, cplane_t *plane, csurface
 			VectorNormalize(normal);
 			VectorMA (self->s.origin, self->maxs[0], normal, point);
 			damage = 40 + 10 * random();
+			float levelmodifier = 1;
+			if (self->monsterinfo.is_mine == 1)
+			{
+				edict_t* foundclient;
+				for (int i = 0; i < globals.num_edicts; i++)
+				{
+					edict_t* cur = &g_edicts[i];
+
+					if (cur->client)
+					{
+						foundclient = cur;
+						break;
+					}
+					if (cur->client)
+						break;
+				}
+				if (foundclient->client)
+				{
+					if (foundclient->client->pers.active_slot == 1)
+						levelmodifier = foundclient->client->pers.slot_1_exp / 100;
+					if (foundclient->client->pers.active_slot == 2)
+						levelmodifier = foundclient->client->pers.slot_2_exp / 100;
+					if (foundclient->client->pers.active_slot == 3)
+						levelmodifier = foundclient->client->pers.slot_3_exp / 100;
+				}
+				if (levelmodifier >= 2 && levelmodifier < 3)
+					levelmodifier = 2;
+				else if (levelmodifier >= 3 && levelmodifier < 4)
+					levelmodifier = 3;
+				else if (levelmodifier >= 4 && levelmodifier < 5)
+					levelmodifier = 4;
+				else if (levelmodifier >= 5 && levelmodifier < 6)
+					levelmodifier = 5;
+				else if (levelmodifier >= 6)
+					levelmodifier = 6;
+				else
+					levelmodifier = 1;
+				levelmodifier = levelmodifier * 0.5;
+			}
+			damage = damage * levelmodifier;
 			T_Damage (other, self, self, self->velocity, point, normal, damage, damage, 0, MOD_UNKNOWN);
 		}
 	}
@@ -640,5 +760,9 @@ void SP_monster_mutant (edict_t *self)
 	self->monsterinfo.currentmove = &mutant_move_stand;
 
 	self->monsterinfo.scale = MODEL_SCALE;
+
+	self->monsterinfo.catchable = 9;
+	self->monsterinfo.giveexp = 100;
+
 	walkmonster_start (self);
 }

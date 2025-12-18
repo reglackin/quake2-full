@@ -597,5 +597,7 @@ void SP_monster_hover (edict_t *self)
 	self->monsterinfo.currentmove = &hover_move_stand;	
 	self->monsterinfo.scale = MODEL_SCALE;
 
+	self->monsterinfo.giveexp = 50;
+
 	flymonster_start (self);
 }

@@ -654,5 +654,7 @@ void SP_monster_chick (edict_t *self)
 	self->monsterinfo.currentmove = &chick_move_stand;
 	self->monsterinfo.scale = MODEL_SCALE;
 
+	self->monsterinfo.giveexp = 50;
+
 	walkmonster_start (self);
 }

@@ -584,5 +584,7 @@ void SP_monster_infantry (edict_t *self)
 	self->monsterinfo.currentmove = &infantry_move_stand;
 	self->monsterinfo.scale = MODEL_SCALE;
 
+	self->monsterinfo.giveexp = 25;
+
 	walkmonster_start (self);
 }

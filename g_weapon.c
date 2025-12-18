@@ -461,7 +461,23 @@ static void Grenade_Touch (edict_t *ent, edict_t *other, cplane_t *plane, csurfa
 	}
 
 	ent->enemy = other;
+	if (ent->owner)
+	{
+		if (ent->owner->client && ent->enemy->monsterinfo.catchable > 0) {
+			if (ent->owner->client->pers.current_monsters < ent->owner->client->pers.max_monsters) {
+				gi.bprintf(PRINT_HIGH, "monster captured\n");
+				ent->owner->client->pers.current_monsters = ent->owner->client->pers.current_monsters + 1;
+				if (ent->owner->client->pers.mon_slot_1 == 0)
+					ent->owner->client->pers.mon_slot_1 = ent->enemy->monsterinfo.catchable;
+				else if (ent->owner->client->pers.mon_slot_2 == 0)
+					ent->owner->client->pers.mon_slot_2 = ent->enemy->monsterinfo.catchable;
+				else if (ent->owner->client->pers.mon_slot_3 == 0)
+					ent->owner->client->pers.mon_slot_3 = ent->enemy->monsterinfo.catchable;
+			}
+		}
+	}
 	Grenade_Explode (ent);
+
 }
 
 void fire_grenade (edict_t *self, vec3_t start, vec3_t aimdir, int damage, int speed, float timer, float damage_radius)

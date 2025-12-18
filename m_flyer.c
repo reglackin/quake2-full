@@ -364,7 +364,47 @@ void flyer_fire (edict_t *self, int flash_number)
 	end[2] += self->enemy->viewheight;
 	VectorSubtract (end, start, dir);
 
-	monster_fire_blaster (self, start, dir, 1, 1000, flash_number, effect);
+	float levelmodifier = 1;
+	if (self->monsterinfo.is_mine == 1)
+	{
+		edict_t* foundclient;
+		for (int i = 0; i < globals.num_edicts; i++)
+		{
+			edict_t* cur = &g_edicts[i];
+
+			if (cur->client)
+			{
+				foundclient = cur;
+				break;
+			}
+			if (cur->client)
+				break;
+		}
+		if (foundclient->client)
+		{
+			if (foundclient->client->pers.active_slot == 1)
+				levelmodifier = foundclient->client->pers.slot_1_exp / 100;
+			if (foundclient->client->pers.active_slot == 2)
+				levelmodifier = foundclient->client->pers.slot_2_exp / 100;
+			if (foundclient->client->pers.active_slot == 3)
+				levelmodifier = foundclient->client->pers.slot_3_exp / 100;
+		}
+		if (levelmodifier >= 2 && levelmodifier < 3)
+			levelmodifier = 2;
+		else if (levelmodifier >= 3 && levelmodifier < 4)
+			levelmodifier = 3;
+		else if (levelmodifier >= 4 && levelmodifier < 5)
+			levelmodifier = 4;
+		else if (levelmodifier >= 5 && levelmodifier < 6)
+			levelmodifier = 5;
+		else if (levelmodifier >= 6)
+			levelmodifier = 6;
+		else
+			levelmodifier = 1;
+		levelmodifier = levelmodifier * 0.5;
+	}
+
+	monster_fire_blaster (self, start, dir, 1*levelmodifier, 1000, flash_number, effect);
 }
 
 void flyer_fireleft (edict_t *self)
@@ -405,8 +445,48 @@ void flyer_slash_left (edict_t *self)
 {
 	vec3_t	aim;
 
+	float levelmodifier = 1;
+	if (self->monsterinfo.is_mine == 1)
+	{
+		edict_t* foundclient;
+		for (int i = 0; i < globals.num_edicts; i++)
+		{
+			edict_t* cur = &g_edicts[i];
+
+			if (cur->client)
+			{
+				foundclient = cur;
+				break;
+			}
+			if (cur->client)
+				break;
+		}
+		if (foundclient->client)
+		{
+			if (foundclient->client->pers.active_slot == 1)
+				levelmodifier = foundclient->client->pers.slot_1_exp / 100;
+			if (foundclient->client->pers.active_slot == 2)
+				levelmodifier = foundclient->client->pers.slot_2_exp / 100;
+			if (foundclient->client->pers.active_slot == 3)
+				levelmodifier = foundclient->client->pers.slot_3_exp / 100;
+		}
+		if (levelmodifier >= 2 && levelmodifier < 3)
+			levelmodifier = 2;
+		else if (levelmodifier >= 3 && levelmodifier < 4)
+			levelmodifier = 3;
+		else if (levelmodifier >= 4 && levelmodifier < 5)
+			levelmodifier = 4;
+		else if (levelmodifier >= 5 && levelmodifier < 6)
+			levelmodifier = 5;
+		else if (levelmodifier >= 6)
+			levelmodifier = 6;
+		else
+			levelmodifier = 1;
+		levelmodifier = levelmodifier * 0.5;
+	}
+
 	VectorSet (aim, MELEE_DISTANCE, self->mins[0], 0);
-	fire_hit (self, aim, 5, 0);
+	fire_hit (self, aim, 5 * levelmodifier, 0);
 	gi.sound (self, CHAN_WEAPON, sound_slash, 1, ATTN_NORM, 0);
 }
 
@@ -414,8 +494,48 @@ void flyer_slash_right (edict_t *self)
 {
 	vec3_t	aim;
 
+	float levelmodifier = 1;
+	if (self->monsterinfo.is_mine == 1)
+	{
+		edict_t* foundclient;
+		for (int i = 0; i < globals.num_edicts; i++)
+		{
+			edict_t* cur = &g_edicts[i];
+
+			if (cur->client)
+			{
+				foundclient = cur;
+				break;
+			}
+			if (cur->client)
+				break;
+		}
+		if (foundclient->client)
+		{
+			if (foundclient->client->pers.active_slot == 1)
+				levelmodifier = foundclient->client->pers.slot_1_exp / 100;
+			if (foundclient->client->pers.active_slot == 2)
+				levelmodifier = foundclient->client->pers.slot_2_exp / 100;
+			if (foundclient->client->pers.active_slot == 3)
+				levelmodifier = foundclient->client->pers.slot_3_exp / 100;
+		}
+		if (levelmodifier >= 2 && levelmodifier < 3)
+			levelmodifier = 2;
+		else if (levelmodifier >= 3 && levelmodifier < 4)
+			levelmodifier = 3;
+		else if (levelmodifier >= 4 && levelmodifier < 5)
+			levelmodifier = 4;
+		else if (levelmodifier >= 5 && levelmodifier < 6)
+			levelmodifier = 5;
+		else if (levelmodifier >= 6)
+			levelmodifier = 6;
+		else
+			levelmodifier = 1;
+		levelmodifier = levelmodifier * 0.5;
+	}
+
 	VectorSet (aim, MELEE_DISTANCE, self->maxs[0], 0);
-	fire_hit (self, aim, 5, 0);
+	fire_hit (self, aim, 5 * levelmodifier, 0);
 	gi.sound (self, CHAN_WEAPON, sound_slash, 1, ATTN_NORM, 0);
 }
 
@@ -602,6 +722,9 @@ void SP_monster_flyer (edict_t *self)
 
 	self->monsterinfo.currentmove = &flyer_move_stand;	
 	self->monsterinfo.scale = MODEL_SCALE;
+
+	self->monsterinfo.catchable = 4;
+	self->monsterinfo.giveexp = 25;
 
 	flymonster_start (self);
 }

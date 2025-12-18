@@ -605,5 +605,7 @@ void SP_monster_gunner (edict_t *self)
 	self->monsterinfo.currentmove = &gunner_move_stand;	
 	self->monsterinfo.scale = MODEL_SCALE;
 
+	self->monsterinfo.giveexp = 50;
+
 	walkmonster_start (self);
 }

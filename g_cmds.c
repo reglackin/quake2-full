@@ -880,6 +880,273 @@ void Cmd_PlayerList_f(edict_t *ent)
 	gi.cprintf(ent, PRINT_HIGH, "%s", text);
 }
 
+void Cmd_monsterslot_f(edict_t* ent) 
+{
+	gi.cprintf(ent, PRINT_HIGH, "monster 1: %i; exp: %i\n", ent->client->pers.mon_slot_1, ent->client->pers.slot_1_exp);
+	gi.cprintf(ent, PRINT_HIGH, "monster 2: %i; exp: %i\n", ent->client->pers.mon_slot_2, ent->client->pers.slot_2_exp);
+	gi.cprintf(ent, PRINT_HIGH, "monster 3: %i; exp: %i\n", ent->client->pers.mon_slot_3, ent->client->pers.slot_3_exp);
+}
+
+void Cmd_clearmonsters_f(edict_t* ent)
+{
+	ent->client->pers.mon_slot_1 = 0;
+	ent->client->pers.mon_slot_2 = 0;
+	ent->client->pers.mon_slot_3 = 0;
+	ent->client->pers.current_monsters = 0;
+	ent->client->pers.slot_1_exp = 0;
+	ent->client->pers.slot_2_exp = 0;
+	ent->client->pers.slot_3_exp = 0;
+	gi.cprintf(ent, PRINT_HIGH, "monsters cleared\n");
+}
+
+void Cmd_Spawnplayermonster_f(edict_t* ent, int slot)
+{
+	if (!ent)
+	{
+		return;
+	}
+
+	int monx;
+	int mony;
+	int monz;
+	int montype;
+
+	if (ent->client) {
+		monx = ent->s.origin[0];
+		mony = ent->s.origin[1];
+		monz = ent->s.origin[2];
+		if (ent->client->pers.active_slot != 0) {
+			gi.cprintf(ent, PRINT_HIGH, "you have an active monster right now - call it back before sending out a new one!\n");
+			return;
+		}
+		if (slot == 1) {
+			montype = ent->client->pers.mon_slot_1;
+			ent->client->pers.active_slot = 1;
+		}
+		else if (slot == 2) {
+			montype = ent->client->pers.mon_slot_2;
+			ent->client->pers.active_slot = 2;
+		}
+		else if (slot == 3) {
+			montype = ent->client->pers.mon_slot_3;
+			ent->client->pers.active_slot = 3;
+		}
+		else {
+			gi.cprintf(ent, PRINT_HIGH, "no slot picked\n");
+			return;
+		}
+		gi.cprintf(ent, PRINT_HIGH, "slot: %i\n", slot);
+		gi.cprintf(ent, PRINT_HIGH, "monster type: %i\n", montype);
+	}
+	else {
+		gi.cprintf(ent, PRINT_HIGH, "no player\n");
+		return;
+	}
+
+	ent = G_Spawn();
+
+	monx = monx + 45;
+	mony = mony + 45;
+	monz = monz + 30;
+	// set position
+	ent->s.origin[0] = monx;
+	ent->s.origin[1] = mony;
+	ent->s.origin[2] = monz;
+	// angles
+	// flags
+	//if (gi.argc() >= 9)
+	//{
+	//	ent->spawnflags = atoi(gi.argv(8));
+	//}
+	if (montype > 0 && montype <= 10) {
+		if (montype == 1)
+			ent->classname = "monster_soldier_light";
+		else if (montype == 2)
+			ent->classname = "monster_soldier";
+		else if (montype == 3)
+			ent->classname = "monster_soldier_ss";
+		else if (montype == 4)
+			ent->classname = "monster_flyer";
+		else if (montype == 5)
+			ent->classname = "monster_parasite";
+		else if (montype == 6)
+			ent->classname = "monster_berserk";
+		else if (montype == 7)
+			ent->classname = "monster_tank";
+		else if (montype == 8)
+			ent->classname = "monster_medic";
+		else if (montype == 9)
+			ent->classname = "monster_mutant";
+		else if (montype == 10)
+			ent->classname = "monster_brain";
+		else {
+			gi.cprintf(ent, PRINT_HIGH, "no monster type\n");
+			return;
+		}
+		ent->monsterinfo.is_mine = 1;
+		ent->monsterinfo.aiflags |= AI_GOOD_GUY;
+		ED_CallSpawn(ent);
+	}
+}
+
+void Cmd_playmonster1_f(edict_t* ent)
+{
+	if (ent->client->pers.mon_slot_1 == 0)
+		gi.cprintf(ent, PRINT_HIGH, "no monster in that slot\n");
+	else if (ent->client->pers.mon_slot_1 > 0 && ent->client->pers.mon_slot_1 <= 10)
+		Cmd_Spawnplayermonster_f(ent,1);
+}
+
+void Cmd_playmonster2_f(edict_t* ent)
+{
+	if (ent->client->pers.mon_slot_2 == 0)
+		gi.cprintf(ent, PRINT_HIGH, "no monster in that slot\n");
+	else if (ent->client->pers.mon_slot_2 > 0 && ent->client->pers.mon_slot_2 <= 10)
+		Cmd_Spawnplayermonster_f(ent, 2);
+}
+
+void Cmd_playmonster3_f(edict_t* ent)
+{
+	if (ent->client->pers.mon_slot_3 == 0)
+		gi.cprintf(ent, PRINT_HIGH, "no monster in that slot\n");
+	else if (ent->client->pers.mon_slot_3 > 0 && ent->client->pers.mon_slot_3 <= 10)
+		Cmd_Spawnplayermonster_f(ent, 3);
+}
+
+void Cmd_returnmonster_f(edict_t* ent) 
+{
+	for (int i = 0; i < globals.num_edicts; i++)
+	{
+		edict_t* cur = &g_edicts[i];
+		qboolean print = false;
+
+		/* Ensure that the entity is valid. */
+		if (!cur->classname)
+		{
+			continue;
+		}
+		if (strncmp(cur->classname, "monster_", 8) == 0)
+		{
+			if (cur->monsterinfo.is_mine == 1) {
+				print = true;
+			}
+		}
+		if (print)
+		{
+			G_FreeEdict(cur);
+		}
+	}
+	ent->client->pers.active_slot = 0;
+}
+
+void Cmd_monsterfollow_f(edict_t* ent) 
+{
+	int holdslot;
+
+	holdslot = ent->client->pers.active_slot;
+	Cmd_returnmonster_f(ent);
+	Cmd_Spawnplayermonster_f(ent, holdslot);
+
+}
+
+void Cmd_monsterset1_f(edict_t* ent)
+{
+	ent->client->pers.mon_slot_1 = 1;
+	ent->client->pers.mon_slot_2 = 2;
+	ent->client->pers.mon_slot_3 = 3;
+	ent->client->pers.current_monsters = 3;
+	ent->client->pers.slot_1_exp = 0;
+	ent->client->pers.slot_2_exp = 0;
+	ent->client->pers.slot_3_exp = 0;
+	gi.cprintf(ent, PRINT_HIGH, "1: soldier light, 2: soldier, 3: soldier ss\n");
+}
+
+void Cmd_monsterset2_f(edict_t* ent)
+{
+	ent->client->pers.mon_slot_1 = 4;
+	ent->client->pers.mon_slot_2 = 5;
+	ent->client->pers.mon_slot_3 = 6;
+	ent->client->pers.current_monsters = 3;
+	ent->client->pers.slot_1_exp = 0;
+	ent->client->pers.slot_2_exp = 0;
+	ent->client->pers.slot_3_exp = 0;
+	gi.cprintf(ent, PRINT_HIGH, "1: flyer, 2: parasite, 3: berserker\n");
+}
+
+void Cmd_monsterset3_f(edict_t* ent)
+{
+	ent->client->pers.mon_slot_1 = 7;
+	ent->client->pers.mon_slot_2 = 8;
+	ent->client->pers.mon_slot_3 = 9;
+	ent->client->pers.current_monsters = 3;
+	ent->client->pers.slot_1_exp = 0;
+	ent->client->pers.slot_2_exp = 0;
+	ent->client->pers.slot_3_exp = 0;
+	gi.cprintf(ent, PRINT_HIGH, "1: tank, 2: medic, 3: mutant\n");
+}
+
+void Cmd_monsterset4_f(edict_t* ent)
+{
+	ent->client->pers.mon_slot_1 = 10;
+	ent->client->pers.mon_slot_2 = 0;
+	ent->client->pers.mon_slot_3 = 0;
+	ent->client->pers.current_monsters = 2;
+	ent->client->pers.slot_1_exp = 0;
+	ent->client->pers.slot_2_exp = 0;
+	ent->client->pers.slot_3_exp = 0;
+	gi.cprintf(ent, PRINT_HIGH, "1: brain, 2: empty, 3: empty\n");
+}
+
+void Cmd_monsterwho_f(edict_t* ent) 
+{
+	gi.cprintf(ent, PRINT_HIGH, "1 - Light Soldier  6 - Berserker\n");
+	gi.cprintf(ent, PRINT_HIGH, "2 - Soldier        7 - Tank\n");
+	gi.cprintf(ent, PRINT_HIGH, "3 - Soldier SS     8 - Medic\n");
+	gi.cprintf(ent, PRINT_HIGH, "4 - Flyer          9 - Mutant\n");
+	gi.cprintf(ent, PRINT_HIGH, "5 - Parasite      10 - Brain\n");
+}
+
+void Cmd_monsterexp_f(edict_t* ent) 
+{
+	if (ent->client->pers.mon_slot_1 != 0) 
+	{
+		ent->client->pers.slot_1_exp = ent->client->pers.slot_1_exp + 100;
+		if (ent->client->pers.slot_1_exp > 600)
+			ent->client->pers.slot_1_exp = 600;
+	}
+	if (ent->client->pers.mon_slot_2 != 0)
+	{
+		ent->client->pers.slot_2_exp = ent->client->pers.slot_2_exp + 100;
+		if (ent->client->pers.slot_2_exp > 600)
+			ent->client->pers.slot_2_exp = 600;
+	}
+	if (ent->client->pers.mon_slot_3 != 0)
+	{
+		ent->client->pers.slot_3_exp = ent->client->pers.slot_3_exp + 100;
+		if (ent->client->pers.slot_3_exp > 600)
+			ent->client->pers.slot_3_exp = 600;
+	}
+}
+void Cmd_monsterhelp_f(edict_t* ent) 
+{
+	gi.cprintf(ent, PRINT_HIGH, "This mod lets you capture and summon monsters!\n");
+	gi.cprintf(ent, PRINT_HIGH, "Use the grenades/grenade launcher to catch monsters\n");
+	gi.cprintf(ent, PRINT_HIGH, "Defeat other monsters to earn exp for your monster and make them stronger!\n");
+	gi.cprintf(ent, PRINT_HIGH, "Commands -\n");
+	gi.cprintf(ent, PRINT_HIGH, "monsterlist - Check your monsters\n");
+	gi.cprintf(ent, PRINT_HIGH, "monsterclear - Get rid of all monsters\n");
+	gi.cprintf(ent, PRINT_HIGH, "monster1/monster2/monster3 - Summon Monsters\n");
+	gi.cprintf(ent, PRINT_HIGH, "monsterreturn - Call back monster\n");
+	gi.cprintf(ent, PRINT_HIGH, "monsterfollow - bring your active monster to you\n");
+	gi.cprintf(ent, PRINT_HIGH, "monstercmds - See extra commands\n");
+}
+
+void Cmd_monstercommands_f(edict_t* ent) 
+{
+	gi.cprintf(ent, PRINT_HIGH, "monset1/monset2/monset3/monset4 - preset teams\n");
+	gi.cprintf(ent, PRINT_HIGH, "monwho - which monster is what number\n");
+	gi.cprintf(ent, PRINT_HIGH, "monexp - give every monster +100 exp\n");
+}
 
 /*
 =================
@@ -924,50 +1191,80 @@ void ClientCommand (edict_t *ent)
 	if (level.intermissiontime)
 		return;
 
-	if (Q_stricmp (cmd, "use") == 0)
-		Cmd_Use_f (ent);
-	else if (Q_stricmp (cmd, "drop") == 0)
-		Cmd_Drop_f (ent);
-	else if (Q_stricmp (cmd, "give") == 0)
-		Cmd_Give_f (ent);
-	else if (Q_stricmp (cmd, "god") == 0)
-		Cmd_God_f (ent);
-	else if (Q_stricmp (cmd, "notarget") == 0)
-		Cmd_Notarget_f (ent);
-	else if (Q_stricmp (cmd, "noclip") == 0)
-		Cmd_Noclip_f (ent);
-	else if (Q_stricmp (cmd, "inven") == 0)
-		Cmd_Inven_f (ent);
-	else if (Q_stricmp (cmd, "invnext") == 0)
-		SelectNextItem (ent, -1);
-	else if (Q_stricmp (cmd, "invprev") == 0)
-		SelectPrevItem (ent, -1);
-	else if (Q_stricmp (cmd, "invnextw") == 0)
-		SelectNextItem (ent, IT_WEAPON);
-	else if (Q_stricmp (cmd, "invprevw") == 0)
-		SelectPrevItem (ent, IT_WEAPON);
-	else if (Q_stricmp (cmd, "invnextp") == 0)
-		SelectNextItem (ent, IT_POWERUP);
-	else if (Q_stricmp (cmd, "invprevp") == 0)
-		SelectPrevItem (ent, IT_POWERUP);
-	else if (Q_stricmp (cmd, "invuse") == 0)
-		Cmd_InvUse_f (ent);
-	else if (Q_stricmp (cmd, "invdrop") == 0)
-		Cmd_InvDrop_f (ent);
-	else if (Q_stricmp (cmd, "weapprev") == 0)
-		Cmd_WeapPrev_f (ent);
-	else if (Q_stricmp (cmd, "weapnext") == 0)
-		Cmd_WeapNext_f (ent);
-	else if (Q_stricmp (cmd, "weaplast") == 0)
-		Cmd_WeapLast_f (ent);
-	else if (Q_stricmp (cmd, "kill") == 0)
-		Cmd_Kill_f (ent);
-	else if (Q_stricmp (cmd, "putaway") == 0)
-		Cmd_PutAway_f (ent);
-	else if (Q_stricmp (cmd, "wave") == 0)
-		Cmd_Wave_f (ent);
+	if (Q_stricmp(cmd, "use") == 0)
+		Cmd_Use_f(ent);
+	else if (Q_stricmp(cmd, "drop") == 0)
+		Cmd_Drop_f(ent);
+	else if (Q_stricmp(cmd, "give") == 0)
+		Cmd_Give_f(ent);
+	else if (Q_stricmp(cmd, "god") == 0)
+		Cmd_God_f(ent);
+	else if (Q_stricmp(cmd, "notarget") == 0)
+		Cmd_Notarget_f(ent);
+	else if (Q_stricmp(cmd, "noclip") == 0)
+		Cmd_Noclip_f(ent);
+	else if (Q_stricmp(cmd, "inven") == 0)
+		Cmd_Inven_f(ent);
+	else if (Q_stricmp(cmd, "invnext") == 0)
+		SelectNextItem(ent, -1);
+	else if (Q_stricmp(cmd, "invprev") == 0)
+		SelectPrevItem(ent, -1);
+	else if (Q_stricmp(cmd, "invnextw") == 0)
+		SelectNextItem(ent, IT_WEAPON);
+	else if (Q_stricmp(cmd, "invprevw") == 0)
+		SelectPrevItem(ent, IT_WEAPON);
+	else if (Q_stricmp(cmd, "invnextp") == 0)
+		SelectNextItem(ent, IT_POWERUP);
+	else if (Q_stricmp(cmd, "invprevp") == 0)
+		SelectPrevItem(ent, IT_POWERUP);
+	else if (Q_stricmp(cmd, "invuse") == 0)
+		Cmd_InvUse_f(ent);
+	else if (Q_stricmp(cmd, "invdrop") == 0)
+		Cmd_InvDrop_f(ent);
+	else if (Q_stricmp(cmd, "weapprev") == 0)
+		Cmd_WeapPrev_f(ent);
+	else if (Q_stricmp(cmd, "weapnext") == 0)
+		Cmd_WeapNext_f(ent);
+	else if (Q_stricmp(cmd, "weaplast") == 0)
+		Cmd_WeapLast_f(ent);
+	else if (Q_stricmp(cmd, "kill") == 0)
+		Cmd_Kill_f(ent);
+	else if (Q_stricmp(cmd, "putaway") == 0)
+		Cmd_PutAway_f(ent);
+	else if (Q_stricmp(cmd, "wave") == 0)
+		Cmd_Wave_f(ent);
 	else if (Q_stricmp(cmd, "playerlist") == 0)
 		Cmd_PlayerList_f(ent);
+	else if (Q_stricmp(cmd, "monsterlist") == 0)
+		Cmd_monsterslot_f(ent);
+	else if (Q_stricmp(cmd, "monsterclear") == 0)
+		Cmd_clearmonsters_f(ent);
+	else if (Q_stricmp(cmd, "monster1") == 0)
+		Cmd_playmonster1_f(ent);
+	else if (Q_stricmp(cmd, "monster2") == 0)
+		Cmd_playmonster2_f(ent);
+	else if (Q_stricmp(cmd, "monster3") == 0)
+		Cmd_playmonster3_f(ent);
+	else if (Q_stricmp(cmd, "monsterreturn") == 0)
+		Cmd_returnmonster_f(ent);
+	else if (Q_stricmp(cmd, "monsterfollow") == 0)
+		Cmd_monsterfollow_f(ent);
+	else if (Q_stricmp(cmd, "monset1") == 0)
+		Cmd_monsterset1_f(ent);
+	else if (Q_stricmp(cmd, "monset2") == 0)
+		Cmd_monsterset2_f(ent);
+	else if (Q_stricmp(cmd, "monset3") == 0)
+		Cmd_monsterset3_f(ent);
+	else if (Q_stricmp(cmd, "monset4") == 0)
+		Cmd_monsterset4_f(ent);
+	else if (Q_stricmp(cmd, "monwho") == 0)
+		Cmd_monsterwho_f(ent);
+	else if (Q_stricmp(cmd, "monexp") == 0)
+		Cmd_monsterexp_f(ent);
+	else if (Q_stricmp(cmd, "monsterhelp") == 0)
+		Cmd_monsterhelp_f(ent);
+	else if (Q_stricmp(cmd, "monstercmds") == 0)
+		Cmd_monstercommands_f(ent);
 	else	// anything that doesn't match a command will be a chat
 		Cmd_Say_f (ent, false, true);
 }

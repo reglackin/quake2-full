@@ -321,16 +321,56 @@ void parasite_drain_attack (edict_t *self)
 	if (tr.ent != self->enemy)
 		return;
 
+	float levelmodifier = 1;
+	if (self->monsterinfo.is_mine == 1)
+	{
+		edict_t* foundclient;
+		for (int i = 0; i < globals.num_edicts; i++)
+		{
+			edict_t* cur = &g_edicts[i];
+
+			if (cur->client)
+			{
+				foundclient = cur;
+				break;
+			}
+			if (cur->client)
+				break;
+		}
+		if (foundclient->client)
+		{
+			if (foundclient->client->pers.active_slot == 1)
+				levelmodifier = foundclient->client->pers.slot_1_exp / 100;
+			if (foundclient->client->pers.active_slot == 2)
+				levelmodifier = foundclient->client->pers.slot_2_exp / 100;
+			if (foundclient->client->pers.active_slot == 3)
+				levelmodifier = foundclient->client->pers.slot_3_exp / 100;
+		}
+		if (levelmodifier >= 2 && levelmodifier < 3)
+			levelmodifier = 2;
+		else if (levelmodifier >= 3 && levelmodifier < 4)
+			levelmodifier = 3;
+		else if (levelmodifier >= 4 && levelmodifier < 5)
+			levelmodifier = 4;
+		else if (levelmodifier >= 5 && levelmodifier < 6)
+			levelmodifier = 5;
+		else if (levelmodifier >= 6)
+			levelmodifier = 6;
+		else
+			levelmodifier = 1;
+		levelmodifier = levelmodifier * 0.5;
+	}
+
 	if (self->s.frame == FRAME_drain03)
 	{
-		damage = 5;
+		damage = 5 * levelmodifier;
 		gi.sound (self->enemy, CHAN_AUTO, sound_impact, 1, ATTN_NORM, 0);
 	}
 	else
 	{
 		if (self->s.frame == FRAME_drain04)
 			gi.sound (self, CHAN_WEAPON, sound_suck, 1, ATTN_NORM, 0);
-		damage = 2;
+		damage = 2 * levelmodifier;
 	}
 
 	gi.WriteByte (svc_temp_entity);
@@ -528,6 +568,9 @@ void SP_monster_parasite (edict_t *self)
 
 	self->monsterinfo.currentmove = &parasite_move_stand;	
 	self->monsterinfo.scale = MODEL_SCALE;
+
+	self->monsterinfo.catchable = 5;
+	self->monsterinfo.giveexp = 75;
 
 	walkmonster_start (self);
 }

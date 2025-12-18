@@ -426,6 +426,10 @@ typedef struct
 
 	int			power_armor_type;
 	int			power_armor_power;
+
+	int catchable; 
+	int is_mine;
+	int giveexp;
 } monsterinfo_t;
 
 
@@ -833,6 +837,19 @@ typedef struct
 	int			max_grenades;
 	int			max_cells;
 	int			max_slugs;
+
+	int max_monsters;
+	int current_monsters;
+
+	int mon_slot_1;
+	int mon_slot_2;
+	int mon_slot_3;
+
+	int slot_1_exp;
+	int slot_2_exp;
+	int slot_3_exp;
+
+	int active_slot;
 
 	gitem_t		*weapon;
 	gitem_t		*lastweapon;

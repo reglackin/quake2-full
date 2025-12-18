@@ -482,20 +482,60 @@ void soldier_fire (edict_t *self, int flash_number)
 		VectorNormalize (aim);
 	}
 
+	float levelmodifier = 1;
+	if (self->monsterinfo.is_mine == 1)
+	{
+		edict_t* foundclient;
+		for (int i = 0; i < globals.num_edicts; i++)
+		{
+			edict_t* cur = &g_edicts[i];
+
+			if (cur->client)
+			{
+				foundclient = cur;
+				break;
+			}
+			if (cur->client)
+				break;
+		}
+		if (foundclient->client)
+		{
+			if (foundclient->client->pers.active_slot == 1)
+				levelmodifier = foundclient->client->pers.slot_1_exp / 100;
+			if (foundclient->client->pers.active_slot == 2)
+				levelmodifier = foundclient->client->pers.slot_2_exp / 100;
+			if (foundclient->client->pers.active_slot == 3)
+				levelmodifier = foundclient->client->pers.slot_3_exp / 100;
+		}
+		if (levelmodifier >= 2 && levelmodifier < 3)
+			levelmodifier = 2;
+		else if (levelmodifier >= 3 && levelmodifier < 4)
+			levelmodifier = 3;
+		else if (levelmodifier >= 4 && levelmodifier < 5)
+			levelmodifier = 4;
+		else if (levelmodifier >= 5 && levelmodifier < 6)
+			levelmodifier = 5;
+		else if (levelmodifier >= 6)
+			levelmodifier = 6;
+		else
+			levelmodifier = 1;
+		levelmodifier = levelmodifier * 0.5;
+		}
+
 	if (self->s.skinnum <= 1)
 	{
-		monster_fire_blaster (self, start, aim, 5, 600, flash_index, EF_BLASTER);
+		monster_fire_blaster (self, start, aim, 5 * levelmodifier, 600, flash_index, EF_BLASTER);
 	}
 	else if (self->s.skinnum <= 3)
 	{
-		monster_fire_shotgun (self, start, aim, 2, 1, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SHOTGUN_COUNT, flash_index);
+		monster_fire_shotgun (self, start, aim, 2 * levelmodifier, 1, DEFAULT_SHOTGUN_HSPREAD, DEFAULT_SHOTGUN_VSPREAD, DEFAULT_SHOTGUN_COUNT, flash_index);
 	}
 	else
 	{
 		if (!(self->monsterinfo.aiflags & AI_HOLD_FRAME))
 			self->monsterinfo.pausetime = level.time + (3 + rand() % 8) * FRAMETIME;
 
-		monster_fire_bullet (self, start, aim, 2, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_index);
+		monster_fire_bullet (self, start, aim, 2 * levelmodifier, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_index);
 
 		if (level.time >= self->monsterinfo.pausetime)
 			self->monsterinfo.aiflags &= ~AI_HOLD_FRAME;
@@ -1209,6 +1249,7 @@ void SP_monster_soldier_x (edict_t *self)
 	gi.linkentity (self);
 
 	self->monsterinfo.stand (self);
+	self->monsterinfo.giveexp = 25;
 
 	walkmonster_start (self);
 }
@@ -1235,6 +1276,8 @@ void SP_monster_soldier_light (edict_t *self)
 	self->s.skinnum = 0;
 	self->health = 20;
 	self->gib_health = -30;
+
+	self->monsterinfo.catchable = 1;
 }
 
 /*QUAKED monster_soldier (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
@@ -1256,6 +1299,8 @@ void SP_monster_soldier (edict_t *self)
 	self->s.skinnum = 2;
 	self->health = 30;
 	self->gib_health = -30;
+
+	self->monsterinfo.catchable = 2;
 }
 
 /*QUAKED monster_soldier_ss (1 .5 0) (-16 -16 -24) (16 16 32) Ambush Trigger_Spawn Sight
@@ -1277,4 +1322,6 @@ void SP_monster_soldier_ss (edict_t *self)
 	self->s.skinnum = 4;
 	self->health = 40;
 	self->gib_health = -30;
+
+	self->monsterinfo.catchable = 3;
 }

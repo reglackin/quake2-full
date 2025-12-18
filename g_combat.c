@@ -77,6 +77,8 @@ void Killed (edict_t *targ, edict_t *inflictor, edict_t *attacker, int damage, v
 
 	targ->enemy = attacker;
 
+	
+
 	if ((targ->svflags & SVF_MONSTER) && (targ->deadflag != DEAD_DEAD))
 	{
 //		targ->svflags |= SVF_DEADMONSTER;	// now treat as a different content type
@@ -88,6 +90,60 @@ void Killed (edict_t *targ, edict_t *inflictor, edict_t *attacker, int damage, v
 			// medics won't heal monsters that they kill themselves
 			if (strcmp(attacker->classname, "monster_medic") == 0)
 				targ->owner = attacker;
+		}
+		if (targ->monsterinfo.giveexp && targ->monsterinfo.is_mine != 1)
+		{
+			if (attacker->client)
+			{
+				gi.cprintf(attacker, PRINT_HIGH, "+exp!\n");
+				if (attacker->client->pers.active_slot != 0)
+				{
+					if (attacker->client->pers.active_slot == 1) 
+					{
+						attacker->client->pers.slot_1_exp = attacker->client->pers.slot_1_exp + targ->monsterinfo.giveexp;
+						if (attacker->client->pers.slot_1_exp > 600)
+							attacker->client->pers.slot_1_exp = 600;
+					}
+					if (attacker->client->pers.active_slot == 2) 
+					{
+						attacker->client->pers.slot_2_exp = attacker->client->pers.slot_2_exp + targ->monsterinfo.giveexp;
+						if (attacker->client->pers.slot_2_exp > 600)
+							attacker->client->pers.slot_2_exp = 600;
+					}
+					if (attacker->client->pers.active_slot == 3) 
+					{
+						attacker->client->pers.slot_3_exp = attacker->client->pers.slot_3_exp + targ->monsterinfo.giveexp;
+						if (attacker->client->pers.slot_3_exp > 600)
+							attacker->client->pers.slot_3_exp = 600;
+					}
+				}
+			}
+			else if (attacker->monsterinfo.is_mine == 1)
+			{
+				edict_t* foundclient;
+				for (int i = 0; i < globals.num_edicts; i++)
+				{
+					edict_t* cur = &g_edicts[i];
+
+					if (cur->client)
+					{
+						foundclient = cur;
+						break;
+					}
+					if (cur->client)
+						break;
+				}
+				if (foundclient->client)
+				{
+					gi.cprintf(foundclient, PRINT_HIGH, "+exp!\n");
+					if (foundclient->client->pers.active_slot == 1)
+						foundclient->client->pers.slot_1_exp = foundclient->client->pers.slot_1_exp + targ->monsterinfo.giveexp;
+					if (foundclient->client->pers.active_slot == 2)
+						foundclient->client->pers.slot_2_exp = foundclient->client->pers.slot_2_exp + targ->monsterinfo.giveexp;
+					if (foundclient->client->pers.active_slot == 3)
+						foundclient->client->pers.slot_3_exp = foundclient->client->pers.slot_3_exp + targ->monsterinfo.giveexp;
+				}
+			}
 		}
 	}
 

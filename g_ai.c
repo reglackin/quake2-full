@@ -163,6 +163,39 @@ void ai_walk (edict_t *self, float dist)
 	}
 }
 
+edict_t* FindMonsterTarget(edict_t* self)
+{
+	edict_t* ent = NULL;
+	edict_t* best = NULL;
+
+	while ((ent = findradius(ent, self->s.origin, 8192)) != NULL)
+	{
+		if (ent->client)
+			continue;
+		if (ent == self)
+			continue;
+		if (!ent->svflags & SVF_MONSTER)
+			continue;
+		if (strncmp(ent->classname, "monster_", 8) != 0)
+			continue;
+		if (ent->monsterinfo.aiflags & AI_GOOD_GUY)
+			continue;
+		if (ent->health < 1)
+			continue;
+		if (!visible(self, ent))
+			continue;
+		if (!best)
+		{
+			best = ent;
+			continue;
+		}
+		if (CheckEnemyDistance(self, ent) > CheckEnemyDistance(self, best))
+			continue;
+		best = ent;
+	}
+	return best;
+}
+
 
 /*
 =============
@@ -367,6 +400,14 @@ void FoundTarget (edict_t *self)
 	self->monsterinfo.run (self);
 }
 
+int CheckEnemyDistance(edict_t* self, edict_t* enemy)
+{
+	vec3_t v;
+
+	VectorSubtract(self->s.origin, enemy->s.origin, v);
+	return VectorLength(v);
+}
+
 
 /*
 ===========
@@ -388,6 +429,7 @@ slower noticing monsters.
 qboolean FindTarget (edict_t *self)
 {
 	edict_t		*client;
+	edict_t    *monster;
 	qboolean	heardit;
 	int			r;
 
@@ -400,6 +442,18 @@ qboolean FindTarget (edict_t *self)
 		}
 
 		//FIXME look for monsters?
+		monster = FindMonsterTarget(self);
+
+		if (monster)
+		{
+			self->enemy = monster;
+
+			if (self->monsterinfo.sight && (self->enemy != self->oldenemy))
+				self->monsterinfo.sight(self, monster);
+			FoundTarget(self);
+			return true;
+		}
+		self->oldenemy = NULL;
 		return false;
 	}
 

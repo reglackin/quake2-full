@@ -331,7 +331,47 @@ void TankBlaster (edict_t *self)
 	end[2] += self->enemy->viewheight;
 	VectorSubtract (end, start, dir);
 
-	monster_fire_blaster (self, start, dir, 30, 800, flash_number, EF_BLASTER);
+	float levelmodifier = 1;
+	if (self->monsterinfo.is_mine == 1)
+	{
+		edict_t* foundclient;
+		for (int i = 0; i < globals.num_edicts; i++)
+		{
+			edict_t* cur = &g_edicts[i];
+
+			if (cur->client)
+			{
+				foundclient = cur;
+				break;
+			}
+			if (cur->client)
+				break;
+		}
+		if (foundclient->client)
+		{
+			if (foundclient->client->pers.active_slot == 1)
+				levelmodifier = foundclient->client->pers.slot_1_exp / 100;
+			if (foundclient->client->pers.active_slot == 2)
+				levelmodifier = foundclient->client->pers.slot_2_exp / 100;
+			if (foundclient->client->pers.active_slot == 3)
+				levelmodifier = foundclient->client->pers.slot_3_exp / 100;
+		}
+		if (levelmodifier >= 2 && levelmodifier < 3)
+			levelmodifier = 2;
+		else if (levelmodifier >= 3 && levelmodifier < 4)
+			levelmodifier = 3;
+		else if (levelmodifier >= 4 && levelmodifier < 5)
+			levelmodifier = 4;
+		else if (levelmodifier >= 5 && levelmodifier < 6)
+			levelmodifier = 5;
+		else if (levelmodifier >= 6)
+			levelmodifier = 6;
+		else
+			levelmodifier = 1;
+		levelmodifier = levelmodifier * 0.5;
+	}
+
+	monster_fire_blaster (self, start, dir, 30 * levelmodifier, 800, flash_number, EF_BLASTER);
 }	
 
 void TankStrike (edict_t *self)
@@ -362,7 +402,47 @@ void TankRocket (edict_t *self)
 	VectorSubtract (vec, start, dir);
 	VectorNormalize (dir);
 
-	monster_fire_rocket (self, start, dir, 50, 550, flash_number);
+	float levelmodifier = 1;
+	if (self->monsterinfo.is_mine == 1)
+	{
+		edict_t* foundclient;
+		for (int i = 0; i < globals.num_edicts; i++)
+		{
+			edict_t* cur = &g_edicts[i];
+
+			if (cur->client)
+			{
+				foundclient = cur;
+				break;
+			}
+			if (cur->client)
+				break;
+		}
+		if (foundclient->client)
+		{
+			if (foundclient->client->pers.active_slot == 1)
+				levelmodifier = foundclient->client->pers.slot_1_exp / 100;
+			if (foundclient->client->pers.active_slot == 2)
+				levelmodifier = foundclient->client->pers.slot_2_exp / 100;
+			if (foundclient->client->pers.active_slot == 3)
+				levelmodifier = foundclient->client->pers.slot_3_exp / 100;
+		}
+		if (levelmodifier >= 2 && levelmodifier < 3)
+			levelmodifier = 2;
+		else if (levelmodifier >= 3 && levelmodifier < 4)
+			levelmodifier = 3;
+		else if (levelmodifier >= 4 && levelmodifier < 5)
+			levelmodifier = 4;
+		else if (levelmodifier >= 5 && levelmodifier < 6)
+			levelmodifier = 5;
+		else if (levelmodifier >= 6)
+			levelmodifier = 6;
+		else
+			levelmodifier = 1;
+		levelmodifier = levelmodifier * 0.5;
+	}
+
+	monster_fire_rocket (self, start, dir, 50 * levelmodifier, 550, flash_number);
 }	
 
 void TankMachineGun (edict_t *self)
@@ -398,7 +478,47 @@ void TankMachineGun (edict_t *self)
 
 	AngleVectors (dir, forward, NULL, NULL);
 
-	monster_fire_bullet (self, start, forward, 20, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_number);
+	float levelmodifier = 1;
+	if (self->monsterinfo.is_mine == 1)
+	{
+		edict_t* foundclient;
+		for (int i = 0; i < globals.num_edicts; i++)
+		{
+			edict_t* cur = &g_edicts[i];
+
+			if (cur->client)
+			{
+				foundclient = cur;
+				break;
+			}
+			if (cur->client)
+				break;
+		}
+		if (foundclient->client)
+		{
+			if (foundclient->client->pers.active_slot == 1)
+				levelmodifier = foundclient->client->pers.slot_1_exp / 100;
+			if (foundclient->client->pers.active_slot == 2)
+				levelmodifier = foundclient->client->pers.slot_2_exp / 100;
+			if (foundclient->client->pers.active_slot == 3)
+				levelmodifier = foundclient->client->pers.slot_3_exp / 100;
+		}
+		if (levelmodifier >= 2 && levelmodifier < 3)
+			levelmodifier = 2;
+		else if (levelmodifier >= 3 && levelmodifier < 4)
+			levelmodifier = 3;
+		else if (levelmodifier >= 4 && levelmodifier < 5)
+			levelmodifier = 4;
+		else if (levelmodifier >= 5 && levelmodifier < 6)
+			levelmodifier = 5;
+		else if (levelmodifier >= 6)
+			levelmodifier = 6;
+		else
+			levelmodifier = 1;
+		levelmodifier = levelmodifier * 0.5;
+	}
+
+	monster_fire_bullet (self, start, forward, 20 * levelmodifier, 4, DEFAULT_BULLET_HSPREAD, DEFAULT_BULLET_VSPREAD, flash_number);
 }	
 
 
@@ -829,6 +949,9 @@ void SP_monster_tank (edict_t *self)
 	
 	self->monsterinfo.currentmove = &tank_move_stand;
 	self->monsterinfo.scale = MODEL_SCALE;
+
+	self->monsterinfo.catchable = 7;
+	self->monsterinfo.giveexp = 100;
 
 	walkmonster_start(self);
 

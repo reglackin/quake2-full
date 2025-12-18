@@ -380,5 +380,7 @@ void SP_monster_flipper (edict_t *self)
 	self->monsterinfo.currentmove = &flipper_move_stand;	
 	self->monsterinfo.scale = MODEL_SCALE;
 
+	self->monsterinfo.giveexp = 25;
+
 	swimmonster_start (self);
 }

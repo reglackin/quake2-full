@@ -694,5 +694,7 @@ void SP_monster_supertank (edict_t *self)
 	self->monsterinfo.currentmove = &supertank_move_stand;
 	self->monsterinfo.scale = MODEL_SCALE;
 
+	self->monsterinfo.giveexp = 150;
+
 	walkmonster_start(self);
 }

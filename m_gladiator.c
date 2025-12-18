@@ -364,5 +364,7 @@ void SP_monster_gladiator (edict_t *self)
 	self->monsterinfo.currentmove = &gladiator_move_stand;
 	self->monsterinfo.scale = MODEL_SCALE;
 
+	self->monsterinfo.giveexp = 100;
+
 	walkmonster_start (self);
 }

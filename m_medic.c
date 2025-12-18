@@ -29,32 +29,63 @@ edict_t *medic_FindDeadMonster (edict_t *self)
 	edict_t	*ent = NULL;
 	edict_t	*best = NULL;
 
-	while ((ent = findradius(ent, self->s.origin, 1024)) != NULL)
+	if (self->monsterinfo.is_mine == 1) 
 	{
-		if (ent == self)
-			continue;
-		if (!(ent->svflags & SVF_MONSTER))
-			continue;
-		if (ent->monsterinfo.aiflags & AI_GOOD_GUY)
-			continue;
-		if (ent->owner)
-			continue;
-		if (ent->health > 0)
-			continue;
-		if (ent->nextthink)
-			continue;
-		if (!visible(self, ent))
-			continue;
-		if (!best)
+		while ((ent = findradius(ent, self->s.origin, 1024)) != NULL)
 		{
+			if (ent == self)
+				continue;
+			if ((ent->svflags & SVF_MONSTER))
+				continue;
+			if (!ent->client)
+				continue;
+			if (ent->owner)
+				continue;
+			if (ent->health >= 100)
+				continue;
+			if (ent->nextthink)
+				continue;
+			if (!visible(self, ent))
+				continue;
+			if (!best)
+			{
+				best = ent;
+				continue;
+			}
+			if (ent->max_health <= best->max_health)
+				continue;
 			best = ent;
-			continue;
 		}
-		if (ent->max_health <= best->max_health)
-			continue;
-		best = ent;
 	}
-
+	else 
+	{
+		while ((ent = findradius(ent, self->s.origin, 1024)) != NULL)
+		{
+			if (ent == self)
+				continue;
+			if (!(ent->svflags & SVF_MONSTER))
+				continue;
+			if (ent->monsterinfo.aiflags & AI_GOOD_GUY)
+				continue;
+			if (ent->owner)
+				continue;
+			if (ent->health > 0)
+				continue;
+			if (ent->nextthink)
+				continue;
+			if (!visible(self, ent))
+				continue;
+			if (!best)
+			{
+				best = ent;
+				continue;
+			}
+			if (ent->max_health <= best->max_health)
+				continue;
+			best = ent;
+		}
+	}
+	
 	return best;
 }
 
@@ -342,7 +373,47 @@ void medic_fire_blaster (edict_t *self)
 	end[2] += self->enemy->viewheight;
 	VectorSubtract (end, start, dir);
 
-	monster_fire_blaster (self, start, dir, 2, 1000, MZ2_MEDIC_BLASTER_1, effect);
+	float levelmodifier = 1;
+	if (self->monsterinfo.is_mine == 1)
+	{
+		edict_t* foundclient;
+		for (int i = 0; i < globals.num_edicts; i++)
+		{
+			edict_t* cur = &g_edicts[i];
+
+			if (cur->client)
+			{
+				foundclient = cur;
+				break;
+			}
+			if (cur->client)
+				break;
+		}
+		if (foundclient->client)
+		{
+			if (foundclient->client->pers.active_slot == 1)
+				levelmodifier = foundclient->client->pers.slot_1_exp / 100;
+			if (foundclient->client->pers.active_slot == 2)
+				levelmodifier = foundclient->client->pers.slot_2_exp / 100;
+			if (foundclient->client->pers.active_slot == 3)
+				levelmodifier = foundclient->client->pers.slot_3_exp / 100;
+		}
+		if (levelmodifier >= 2 && levelmodifier < 3)
+			levelmodifier = 2;
+		else if (levelmodifier >= 3 && levelmodifier < 4)
+			levelmodifier = 3;
+		else if (levelmodifier >= 4 && levelmodifier < 5)
+			levelmodifier = 4;
+		else if (levelmodifier >= 5 && levelmodifier < 6)
+			levelmodifier = 5;
+		else if (levelmodifier >= 6)
+			levelmodifier = 6;
+		else
+			levelmodifier = 1;
+		levelmodifier = levelmodifier * 0.5;
+	}
+
+	monster_fire_blaster (self, start, dir, 2 * levelmodifier, 1000, MZ2_MEDIC_BLASTER_1, effect);
 }
 
 
@@ -585,40 +656,123 @@ void medic_cable_attack (edict_t *self)
 	if (tr.fraction != 1.0 && tr.ent != self->enemy)
 		return;
 
-	if (self->s.frame == FRAME_attack43)
+	if (self->monsterinfo.is_mine == 1) 
 	{
-		gi.sound (self->enemy, CHAN_AUTO, sound_hook_hit, 1, ATTN_NORM, 0);
-		self->enemy->monsterinfo.aiflags |= AI_RESURRECTING;
-	}
-	else if (self->s.frame == FRAME_attack50)
-	{
-		self->enemy->spawnflags = 0;
-		self->enemy->monsterinfo.aiflags = 0;
-		self->enemy->target = NULL;
-		self->enemy->targetname = NULL;
-		self->enemy->combattarget = NULL;
-		self->enemy->deathtarget = NULL;
-		self->enemy->owner = self;
-		ED_CallSpawn (self->enemy);
-		self->enemy->owner = NULL;
-		if (self->enemy->think)
+		float levelmodifier = 1;
+		if (self->monsterinfo.is_mine == 1)
 		{
-			self->enemy->nextthink = level.time;
-			self->enemy->think (self->enemy);
-		}
-		self->enemy->monsterinfo.aiflags |= AI_RESURRECTING;
-		if (self->oldenemy && self->oldenemy->client)
-		{
-			self->enemy->enemy = self->oldenemy;
-			FoundTarget (self->enemy);
-		}
-	}
-	else
-	{
-		if (self->s.frame == FRAME_attack44)
-			gi.sound (self, CHAN_WEAPON, sound_hook_heal, 1, ATTN_NORM, 0);
-	}
+			edict_t* foundclient;
+			for (int i = 0; i < globals.num_edicts; i++)
+			{
+				edict_t* cur = &g_edicts[i];
 
+				if (cur->client)
+				{
+					foundclient = cur;
+					break;
+				}
+				if (cur->client)
+					break;
+			}
+			if (foundclient->client)
+			{
+				if (foundclient->client->pers.active_slot == 1)
+					levelmodifier = foundclient->client->pers.slot_1_exp / 100;
+				if (foundclient->client->pers.active_slot == 2)
+					levelmodifier = foundclient->client->pers.slot_2_exp / 100;
+				if (foundclient->client->pers.active_slot == 3)
+					levelmodifier = foundclient->client->pers.slot_3_exp / 100;
+			}
+			if (levelmodifier >= 2 && levelmodifier < 3)
+				levelmodifier = 2;
+			else if (levelmodifier >= 3 && levelmodifier < 4)
+				levelmodifier = 3;
+			else if (levelmodifier >= 4 && levelmodifier < 5)
+				levelmodifier = 4;
+			else if (levelmodifier >= 5 && levelmodifier < 6)
+				levelmodifier = 5;
+			else if (levelmodifier >= 6)
+				levelmodifier = 6;
+			else
+				levelmodifier = 1;
+			levelmodifier = levelmodifier * 0.5;
+		}
+		if (self->s.frame == FRAME_attack43)
+		{
+			gi.sound(self->enemy, CHAN_AUTO, sound_hook_hit, 1, ATTN_NORM, 0);
+			if (self->enemy->client) 
+			{
+				self->enemy->client->pers.health = self->enemy->client->pers.health + 4 * levelmodifier;
+				if (self->enemy->client->pers.health > 100)
+					self->enemy->client->pers.health = 100;
+			}
+		}
+		else if (self->s.frame == FRAME_attack50)
+		{
+			self->enemy->spawnflags = 0;
+			self->enemy->monsterinfo.aiflags = 0;
+			self->enemy->target = NULL;
+			self->enemy->targetname = NULL;
+			self->enemy->combattarget = NULL;
+			self->enemy->deathtarget = NULL;
+			self->enemy->owner = self;
+			ED_CallSpawn(self->enemy);
+			self->enemy->owner = NULL;
+			if (self->enemy->think)
+			{
+				self->enemy->nextthink = level.time;
+				self->enemy->think(self->enemy);
+			}
+			//self->enemy->monsterinfo.aiflags |= AI_RESURRECTING;
+			if (self->oldenemy && self->oldenemy->client)
+			{
+				self->enemy->enemy = self->oldenemy;
+				FoundTarget(self->enemy);
+			}
+		}
+		else
+		{
+			if (self->s.frame == FRAME_attack44)
+				gi.sound(self, CHAN_WEAPON, sound_hook_heal, 1, ATTN_NORM, 0);
+		}
+	}
+	else 
+	{
+		if (self->s.frame == FRAME_attack43)
+		{
+			gi.sound(self->enemy, CHAN_AUTO, sound_hook_hit, 1, ATTN_NORM, 0);
+			self->enemy->monsterinfo.aiflags |= AI_RESURRECTING;
+		}
+		else if (self->s.frame == FRAME_attack50)
+		{
+			self->enemy->spawnflags = 0;
+			self->enemy->monsterinfo.aiflags = 0;
+			self->enemy->target = NULL;
+			self->enemy->targetname = NULL;
+			self->enemy->combattarget = NULL;
+			self->enemy->deathtarget = NULL;
+			self->enemy->owner = self;
+			ED_CallSpawn(self->enemy);
+			self->enemy->owner = NULL;
+			if (self->enemy->think)
+			{
+				self->enemy->nextthink = level.time;
+				self->enemy->think(self->enemy);
+			}
+			self->enemy->monsterinfo.aiflags |= AI_RESURRECTING;
+			if (self->oldenemy && self->oldenemy->client)
+			{
+				self->enemy->enemy = self->oldenemy;
+				FoundTarget(self->enemy);
+			}
+		}
+		else
+		{
+			if (self->s.frame == FRAME_attack44)
+				gi.sound(self, CHAN_WEAPON, sound_hook_heal, 1, ATTN_NORM, 0);
+		}
+	}
+	
 	// adjust start for beam origin being in middle of a segment
 	VectorMA (start, 8, f, start);
 
@@ -745,6 +899,9 @@ void SP_monster_medic (edict_t *self)
 
 	self->monsterinfo.currentmove = &medic_move_stand;
 	self->monsterinfo.scale = MODEL_SCALE;
+
+	self->monsterinfo.catchable = 8;
+	self->monsterinfo.giveexp = 25;
 
 	walkmonster_start (self);
 }

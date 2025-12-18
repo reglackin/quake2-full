@@ -595,6 +595,14 @@ void InitClientPersistant (gclient_t *client)
 	client->pers.selected_item = ITEM_INDEX(item);
 	client->pers.inventory[client->pers.selected_item] = 1;
 
+	item = FindItem("Grenades");
+	client->pers.selected_item = ITEM_INDEX(item);
+	client->pers.inventory[client->pers.selected_item] = 3; 
+
+	item = FindItem("Grenade Launcher");
+	client->pers.selected_item = ITEM_INDEX(item);
+	client->pers.inventory[client->pers.selected_item] = 1;
+
 	client->pers.weapon = item;
 
 	client->pers.health			= 100;
@@ -603,9 +611,22 @@ void InitClientPersistant (gclient_t *client)
 	client->pers.max_bullets	= 200;
 	client->pers.max_shells		= 100;
 	client->pers.max_rockets	= 50;
-	client->pers.max_grenades	= 50;
+	client->pers.max_grenades	= 3;
 	client->pers.max_cells		= 200;
 	client->pers.max_slugs		= 50;
+
+	client->pers.current_monsters = 0;
+	client->pers.max_monsters = 3;
+
+	client->pers.mon_slot_1 = 0;
+	client->pers.mon_slot_2 = 0;
+	client->pers.mon_slot_3 = 0;
+
+	client->pers.slot_1_exp = 0;
+	client->pers.slot_2_exp = 0;
+	client->pers.slot_3_exp = 0;
+
+	client->pers.active_slot = 0;
 
 	client->pers.connected = true;
 }
