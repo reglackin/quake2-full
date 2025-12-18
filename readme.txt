@@ -1,29 +1,37 @@
+This mod is a monster capturing/summoning mod. The player starts off with a grenade launcher that never runs out, 
+and this is used to capture monsters. Once captured, they can be summoned using commands, and they will fight for 
+you. Every monster killed gives some exp to your current active monster. The more exp, the more powerful your 
+monster's attacks, capping out at 3x its base power at 600 exp.
 
-This is the complete source code for Quake 2, version 3.19, buildable with
-visual C++ 6.0.  The linux version should be buildable, but we haven't
-tested it for the release.
+To install:
+Compile the .dll and add it to a new folder in the quake 2 folder. To launch, open quake 2 and use the set game 
+command for whatever the folder is named.
 
-The code is all licensed under the terms of the GPL (gnu public license).  
-You should read the entire license, but the gist of it is that you can do 
-anything you want with the code, including sell your new version.  The catch 
-is that if you distribute new binary versions, you are required to make the 
-entire source code available for free to everyone.
+Capturable monsters and their number:
+Soldier light = 1
+Soldier = 2 
+Soldier SS = 3 
+Flyer = 4 
+Parasite = 5 
+Berserker = 6 
+Tank = 7 
+Medic = 8 
+Mutant = 9 
+Brain = 10
 
-The primary intent of this release is for entertainment and educational 
-purposes, but the GPL does allow commercial exploitation if you obey the 
-full license.  If you want to do something commercial and you just can't bear 
-to have your source changes released, we could still negotiate a separate 
-license agreement (for $$$), but I would encourage you to just live with the 
-GPL.
+Commands: 
+monsterhelp: In-game help screen with basic info/commands
+monstercmds: list of additional commands, mostly for testing
+monsterlist: list of your current monsters and their exp
+monsterclear: clear all monster slots and set all exp to 0
+monster1/monster2/monster3: summons the monster from that slot, making it your active monster
+monsterreturn: returns the current monster - you need to return the current active monster before sending out another
+monsterfollow: respawns your current monster next to you. Good for if it’s lagging behind
 
-All of the Q2 data files remain copyrighted and licensed under the 
-original terms, so you cannot redistribute data from the original game, but if 
-you do a true total conversion, you can create a standalone game based on 
-this code.
-
-Thanks to Robert Duffy for doing the grunt work of building this release.
-
-John Carmack
-Id Software
-
-
+Additional commands (listed under monstercmds):
+monset1: preset team #1 - Soldier light, soldier, soldier ss
+monset2: preset team #2 - flyer, parasite, berserker
+monset3: preset team #3 - Tank, Medic, Mutant
+monset4: preset team #4 - brain, other two slots empty
+monwho: list of all catchable monsters and what their number is
+monexp: gives all slots with a monster +100 exp
